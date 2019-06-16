@@ -210,12 +210,12 @@ def pack(f):
             tar = tarfile.open(name=tarName, mode='w:gz', dereference=False)
             tar.add(x, arcname=os.path.split(x)[1])
             tar.close()
-            shutil.rmtree(x)
         except:
             print('\nError when procsessing', x, '.\n')
             tar.close()
             raise
         else:
+            shutil.rmtree(x)
             print('[OK!]')
     print('Packing completed.')
 
@@ -231,12 +231,12 @@ def unpack(f):
             tar = tarfile.open(x, 'r:gz')
             tar.extractall(path=os.path.dirname(x))
             tar.close()
-            os.remove(x)
         except:
             print('\nError when procsessing', x, '.\n')
             tar.close()
             raise
         else:
+            os.remove(x)
             print('[OK!]')
     print('Upacking completed.')
 
