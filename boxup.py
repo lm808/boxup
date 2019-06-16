@@ -228,8 +228,7 @@ def unpack(f):
               + x + ' ... ', end='')
         sys.stdout.flush()
         try:
-            dir = x.rsplit(ext_box, 1)[0]
-            os.mkdir(dir)
+            dir = os.path.split(x)[0]
             subprocess.run(["tar", "-xzf", x, '-C', dir], check=True)
         except:
             print('\nError when procsessing', x, '.\n')
