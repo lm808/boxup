@@ -54,62 +54,92 @@ def readList(flist):
             while line:
                 f.append(line.strip())
                 line = fhandle.readline()
-            n = len(f)
-            f = [x for x in f if os.path.isabs(x)]
-            if n != len(f):
-                print('Warning:', n - len(f), 'non-absolute paths removed.')
-            # remove duplicate items
-            n = len(f)
-            f = list(set(f))
-            if len(f) != n:
-                print('Warning:', n - len(f), 'duplicate items removed.')
-            if not f:
-                print('No valid item in this list.\n')
-                sys.exit(-1)
-            else:
-                # strip off trailing path separator
-                f2 = []
-                for x in f:
-                    while x.endswith(os.sep):
-                        x = x[:-1]
-                    f2.append(x)
-                return f2
+        # strip off trailing path separator
+        f2 = []
+        for x in f:
+            while x.endswith(os.sep):
+                x = x[:-1]
+            f2.append(x)
+        return f2
 
 
-def processPackList(flist):
+def cleanPackList(flist):
     f = readList(flist)
-    n = len(f)
-    f = [x for x in f if os.path.isdir(x)]
-    if len(f) != n:
-        print('Warning:', n - len(f), 'invalid paths removed.')
-    # remove folders that are ancesters of other folders
+    f = rmNotAbs(f)
+    f = rmDups(f)
+    f = rmInvalid(f)
     f.sort()
-    exclude = []
-    for x in f:
-        for y in f:
-            if y.startswith(x + os.path.sep) and y != x:
-                exclude.append(x)
-                break
-    n = len(f)
-    f = [x for x in f if x not in exclude]
-    if n != len(f):
-        print('Warning:', n - len(f), 'ancestors removed:')
-        printList(exclude, '')
+    f = rmAncestor(f)
+    # check if there is any folders remaining
     if not f:
-        print('No valid item in this list.\n')
+        print('\nNo valid item in this list.\n')
         sys.exit(-1)
     else:
         return f
 
 
-def processUnpackList(flist):
+def cleanUnpackList(flist):
     f = readList(flist)
+    f = rmNotAbs(f)
+    f = rmDups(f)
     f = [x for x in f if x.endswith('.box.tar.gz') and os.path.isfile(x)]
     if not f:
         print('No valid item in this list.\n')
         sys.exit(-1)
     else:
         return f
+
+
+def rmNotAbs(f):
+    # remove non-absolute paths
+    exclude = [x for x in f if not os.path.isabs(x)]
+    if len(exclude) > 0:
+        print('\nWarning:', len(exclude), 'non-absolute paths removed:')
+        printList(exclude, '')
+    return [x for x in f if os.path.isabs(x)]
+
+
+def rmDups(f):
+    # remove duplicate items
+    f2 = []
+    dups = {}
+    for x in f:
+        if x not in f2:
+            f2.append(x)
+        elif x in dups:
+            dups[x] += 1
+        else:
+            dups[x] = 1
+    if len(f) != len(f2):
+        print('\nWarning:', len(f) - len(f2), 'duplicate items removed:\n')
+        n = 0
+        for x, i in dups.items():
+            n += 1
+            print('\t[' + str(n) + '] (' + str(i) + ')', x)
+    return f2
+
+
+def rmInvalid(f):
+    # remove invalid paths
+    exclude = [x for x in f if not os.path.isdir(x)]
+    if len(exclude) > 0:
+        print('\nWarning:', len(exclude), 'invalid paths removed:')
+        printList(exclude, '')
+    return [x for x in f if os.path.isdir(x)]
+
+
+def rmAncestor(f):
+    # remove folders that are ancesters of other folders
+    exclude = []
+    for x in f:
+        for y in f:
+            if y.startswith(x + os.path.sep) and y != x:
+                exclude.append(x)
+                break
+    if len(exclude) > 0:
+        print('\nWarning:', len(exclude), 'ancestors removed:')
+        printList(exclude, '')
+    return [x for x in f if x not in exclude]
 
 
 def printList(f, msg='default'):
@@ -252,7 +282,7 @@ if __name__ == '__main__':
         if cmd in ('--pack', '-p'):
             # printWarning()
             if os.path.isfile(inputs):
-                f = processPackList(inputs)
+                f = cleanPackList(inputs)
             elif os.path.isdir(inputs):
                 f = getSubDir(inputs)
                 f = refineList(f)
@@ -264,7 +294,7 @@ if __name__ == '__main__':
         elif cmd in ('--unpack', '-u'):
             # printWarning()
             if os.path.isfile(inputs):
-                f = processUnpackList(inputs)
+                f = cleanUnpackList(inputs)
             elif os.path.isdir(inputs):
                 f = getTars(inputs)
                 f = refineList(f)
