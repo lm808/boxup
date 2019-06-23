@@ -6,6 +6,7 @@ import re
 import tarfile
 import shutil
 import subprocess
+from datetime import datetime
 
 
 ext_list = '.boxlist'
@@ -199,6 +200,18 @@ def finalConfirm(f):
             continue
 
 
+def sizeof_fmt(num, suffix='B'):
+    for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)
+
+
+def sizeHR(f):
+    return sizeof_fmt(os.path.getsize(f))
+
+
 def pack(f):
     n = 0
     for x in f:
@@ -215,8 +228,9 @@ def pack(f):
             print('\nError when procsessing', x, '.\n')
             raise
         else:  # only executes when there is no error
+            print('OK! [' + sizeHR(tarName) + '/' +
+                  datetime.now().strftime('%H:%M:%S') + ']')
             shutil.rmtree(x)
-            print('[OK!]')
     print('Packing completed.')
 
 
@@ -234,8 +248,9 @@ def unpack(f):
             print('\nError when procsessing', x, '.\n')
             raise
         else:  # only executes when there is no error
+            print('OK! [' + sizeHR(x) + '/' +
+                  datetime.now().strftime('%H:%M:%S') + ']')
             os.remove(x)
-            print('[OK!]')
     print('Upacking completed.')
 
 
