@@ -3,8 +3,10 @@
 import os
 import sys
 import re
-import tarfile
 import shutil
+import subprocess
+from datetime import datetime
+# import tarfile
 
 
 ext_list = '.boxlist'
@@ -198,25 +200,42 @@ def finalConfirm(f):
             continue
 
 
+def sizeof_fmt(num, suffix='B'):
+    for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)
+
+
+def sizeHR(f):
+    return sizeof_fmt(os.path.getsize(f))
+
+
 def pack(f):
     n = 0
     for x in f:
         n = n + 1
-        tarName = x + '.box.tar.gz'
+        tarName = x + ext_box
         print('Processing (' + str(n) + '/' + str(len(f)) + '): '
               + x + ' ... ', end='')
         sys.stdout.flush()
         try:
-            tar = tarfile.open(name=tarName, mode='w:gz', dereference=False)
-            tar.add(x, arcname=os.path.split(x)[1])
-            tar.close()
+            dir = os.path.split(x)[0]
+            arcName = os.path.split(x)[1]
+            subprocess.run(['tar', '-czf', tarName, '-C', dir, arcName], check=True)
+            # tarfile alternative
+            # tar = tarfile.open(name=tarName, mode='w:gz', dereference=False)
+            # tar.add(x, arcname=os.path.split(x)[1])
+            # tar.close()
         except:
             print('\nError when procsessing', x, '.\n')
-            tar.close()
+            # tar.close() # tarfile alternative
             raise
-        else:
+        else:  # only executes when there is no error
             shutil.rmtree(x)
-            print('[OK!]')
+            print('OK! [' + sizeHR(tarName) + '/' +
+                  datetime.now().strftime('%H:%M:%S') + ']')
     print('Packing completed.')
 
 
@@ -228,16 +247,20 @@ def unpack(f):
               + x + ' ... ', end='')
         sys.stdout.flush()
         try:
-            tar = tarfile.open(x, 'r:gz')
-            tar.extractall(path=os.path.dirname(x))
-            tar.close()
+            dir = os.path.split(x)[0]
+            subprocess.run(["tar", "-xzf", x, '-C', dir], check=True)
+            # tarfile alternative
+            # tar = tarfile.open(x, 'r:gz')
+            # tar.extractall(path=os.path.dirname(x))
+            # tar.close()
         except:
             print('\nError when procsessing', x, '.\n')
-            tar.close()
+            # tar.close() # tarfile alternative
             raise
-        else:
+        else:  # only executes when there is no error
+            print('OK! [' + sizeHR(x) + '/' +
+                  datetime.now().strftime('%H:%M:%S') + ']')
             os.remove(x)
-            print('[OK!]')
     print('Upacking completed.')
 
 
@@ -312,6 +335,13 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print('\nAbort mission.\n')
         sys.exit(0)
+
+
+# TODO:
+# 1) Add option to ignore error, record to failed.box.log
+# 2) box.list
+# 3) Reject non-unix systems
+# 4) split / recombine oversized files
 
 
 #     for root, directories, filenames in os.walk('/tmp/'):
