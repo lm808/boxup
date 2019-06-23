@@ -9,10 +9,6 @@ from datetime import datetime
 # import tarfile
 
 
-ext_list = '.boxlist'
-ext_box = '.box.tar.gz'
-
-
 def getSubDir(rootDir, level=1, includeHidden=False, followSymLink=False):
     f = os.listdir(rootDir)
     if not includeHidden:
@@ -286,7 +282,7 @@ lm808, June 2019
     print(s)
 
 
-if __name__ == '__main__':
+def main():
     # packdir <operation> <root-dir>
     nargin = len(sys.argv)
     if nargin == 1:
@@ -337,11 +333,22 @@ if __name__ == '__main__':
         sys.exit(0)
 
 
+if __name__ == '__main__':
+    # define some global constants
+    ext_list = '.box.list'
+    ext_box = '.box.tar.gz'
+    ext_log = '.box.log'
+    if os.name is not 'posix':
+        print('Please use a unix-like system with these commands:')
+        print('\ttar, split')
+        sys.exit(-1)
+    else:
+        main()
+
+
 # TODO:
 # 1) Add option to ignore error, record to failed.box.log
-# 2) box.list
-# 3) Reject non-unix systems
-# 4) split / recombine oversized files
+# 2) split / recombine oversized files
 
 
 #     for root, directories, filenames in os.walk('/tmp/'):
