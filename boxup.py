@@ -3,10 +3,10 @@
 import os
 import sys
 import re
-import tarfile
 import shutil
 import subprocess
 from datetime import datetime
+# import tarfile
 
 
 ext_list = '.boxlist'
@@ -224,13 +224,18 @@ def pack(f):
             dir = os.path.split(x)[0]
             arcName = os.path.split(x)[1]
             subprocess.run(['tar', '-czf', tarName, '-C', dir, arcName], check=True)
+            # tarfile alternative
+            # tar = tarfile.open(name=tarName, mode='w:gz', dereference=False)
+            # tar.add(x, arcname=os.path.split(x)[1])
+            # tar.close()
         except:
             print('\nError when procsessing', x, '.\n')
+            # tar.close() # tarfile alternative
             raise
         else:  # only executes when there is no error
+            shutil.rmtree(x)
             print('OK! [' + sizeHR(tarName) + '/' +
                   datetime.now().strftime('%H:%M:%S') + ']')
-            shutil.rmtree(x)
     print('Packing completed.')
 
 
@@ -244,8 +249,13 @@ def unpack(f):
         try:
             dir = os.path.split(x)[0]
             subprocess.run(["tar", "-xzf", x, '-C', dir], check=True)
+            # tarfile alternative
+            # tar = tarfile.open(x, 'r:gz')
+            # tar.extractall(path=os.path.dirname(x))
+            # tar.close()
         except:
             print('\nError when procsessing', x, '.\n')
+            # tar.close() # tarfile alternative
             raise
         else:  # only executes when there is no error
             print('OK! [' + sizeHR(x) + '/' +
@@ -325,6 +335,13 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print('\nAbort mission.\n')
         sys.exit(0)
+
+
+# TODO:
+# 1) Add option to ignore error, record to failed.box.log
+# 2) box.list
+# 3) Reject non-unix systems
+# 4) split / recombine oversized files
 
 
 #     for root, directories, filenames in os.walk('/tmp/'):
