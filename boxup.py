@@ -11,7 +11,7 @@ from datetime import datetime
 
 def dispHelp():
     s = '''
-boxarch - selectively tar + gzip sub-folders to make cloud uploading easier.
+boxup - selectively tar + gzip sub-folders to make cloud uploading easier.
 
 USAGE
 
