@@ -418,6 +418,7 @@ def combineTar(f, ignoreErr=False):
 def spliTar(f, lim, ignoreErr=False):
     n = 0
     for x in f:
+        n += 1
         print('Splitting (' + str(n) + '/' + str(len(f)) + '): '
               + x + ' ... ')
         sys.stdout.flush()
